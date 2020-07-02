@@ -26,7 +26,7 @@ cri_log_files_targets:
 cri_temp_files_remove_enabled: yes
 
 cri_temp_dump_files_paths: "/var/resin"
-cri_temp_dump_files_patterns: "*.hprof"
+cri_temp_dump_files_patterns: "*"
 cri_temp_dump_files_recurse: no
 cri_temp_dump_files_hidden: yes
 cri_temp_dump_files_file_type: "file"
