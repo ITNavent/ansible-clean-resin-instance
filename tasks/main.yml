@@ -1,0 +1,125 @@
+---
+
+-
+  name: "Clean Resin Instance - Show Ansible Role variables"
+  debug: 
+    msg: 
+      - "cri_log_files_remove_enabled={{cri_log_files_remove_enabled|default('<UNDEFINED>')}}"
+      - "cri_log_files_targets={{cri_log_files_targets|default('<UNDEFINED>')}}"
+      - "cri_temp_files_remove_enabled={{cri_temp_files_remove_enabled|default('<UNDEFINED>')}}"
+      - "cri_temp_files_targets={{cri_temp_files_targets|default('<UNDEFINED>')}}"
+
+
+
+#clean-resin-log-files
+
+- 
+  name: "Clean Resin Instance - Find log files"
+  find:
+    paths: "{{ item['cri_log_files_paths'] }}"
+    patterns: "{{ item['cri_log_files_patterns'] }}"
+    age: "{{ item['cri_log_files_age'] | default('180d') }}" # para los logs se tiene en cuenta la antiguedad del archivo
+    recurse: "{{ item['cri_log_files_recurse'] | default(true) }}"
+    hidden: "{{ item['cri_log_files_hidden'] | default(true) }}"
+    file_type: "{{ item['cri_log_files_file_type'] | default('file') }}" # para los logs solo borramos los archivos, no los directorios
+    follow: "{{ item['cri_log_files_follow'] | default(false) }}"
+  register: cri_log_files_find_results
+  with_items: "{{cri_log_files_targets}}"
+  when: 
+    - cri_log_files_find_enabled is undefined or (cri_log_files_find_enabled is defined and cri_log_files_find_enabled == true) # enabled by default
+    - cri_log_files_targets is defined
+
+-
+  name: "Clean Resin Instance - Show finded files"
+  debug: 
+    msg: 
+      - "{{ (item.files | map(attribute='path') | list) }}"
+  with_items: "{{cri_log_files_find_results.results|flatten}}"
+  when: 
+    - cri_log_files_find_results is defined
+
+- # magia
+  name: "Clean Resin Instance - Prepare log files list" # transforma el list de files encontrados a un list de strings que son los paths solamente 
+  set_fact:  
+    cri_log_files_find_results_prepared: "{{ (cri_log_files_find_results_prepared | default([])) + (item.files | map(attribute='path') | list) }}" # toma la array de objetos "files", se queda solo con el atributo "path" de cada objeto y lo convierte a "list" para que pueda ser mostrada en un debug msg
+    # NOTA: combinar el set_fact con el with_items hace que se concatenen los items del with_items dntro de la variable del set_fact
+    # NOTA2: el default([]) es para instanciar una list vacia en la 1ra iteracion ya que "cri_log_files_find_results_prepared"  no existira en la 1ra.
+  with_items: "{{cri_log_files_find_results.results|flatten}}" # aplana el array de arrays
+  when: 
+    - cri_log_files_find_results is defined
+
+-
+  name: "Clean Resin Instance - Show prepared log files list"
+  debug: 
+    msg: "{{ cri_log_files_find_results_prepared  }}" 
+  when:
+    - cri_log_files_show_enabled is undefined or (cri_log_files_show_enabled is defined and cri_log_files_show_enabled == true) # enabled by default
+    - cri_log_files_find_results_prepared is defined
+
+- 
+  name: "Clean Resin Instance - Remove log files"
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ cri_log_files_find_results_prepared }}"
+  when:
+    - cri_log_files_remove_enabled is undefined or (cri_log_files_remove_enabled is defined and cri_log_files_remove_enabled == true) # enabled by default
+    - cri_log_files_find_results_prepared is defined
+
+
+
+#clean-resin-temp-files
+
+- 
+  name: "Clean Resin Instance - Find temp files"
+  find:
+    paths: "{{ item['cri_temp_files_paths'] }}"
+    patterns: "{{ item['cri_temp_files_patterns'] }}"
+    recurse: "{{ item['cri_temp_files_recurse'] | default(true) }}"
+    hidden: "{{ item['cri_temp_files_hidden'] | default(true) }}"
+    file_type: "{{ item['cri_temp_files_file_type'] | default('any') }}"
+    follow: "{{ item['cri_temp_files_follow'] | default(false) }}"
+  register: cri_temp_files_find_results
+  with_items: "{{cri_temp_files_targets}}"
+  when: 
+    - cri_temp_files_find_enabled is undefined or (cri_temp_files_find_enabled is defined and cri_temp_files_find_enabled == true) # enabled by default
+    - cri_temp_files_targets is defined
+
+-
+  name: "Clean Resin Instance - Show finded files"
+  debug: 
+    msg: 
+      - "{{ (item.files | map(attribute='path') | list) }}"
+  with_items: "{{cri_temp_files_find_results.results|flatten}}"
+  when: 
+    - cri_temp_files_find_results is defined
+
+- # magia
+  name: "Clean Resin Instance - Prepare temp files list" # transforma el list de files encontrados a un list de strings que son los paths solamente 
+  set_fact:  
+    cri_temp_files_find_results_prepared: "{{ (cri_temp_files_find_results_prepared | default([])) + (item.files | map(attribute='path') | list) }}" # toma la array de objetos "files", se queda solo con el atributo "path" de cada objeto y lo convierte a "list" para que pueda ser mostrada en un debug msg
+    # NOTA: combinar el set_fact con el with_items hace que se concatenen los items del with_items dntro de la variable del set_fact
+    # NOTA2: el default([]) es para instanciar una list vacia en la 1ra iteracion ya que "cri_temp_files_find_results_prepared"  no existira en la 1ra.
+  with_items: "{{cri_temp_files_find_results.results|flatten}}" # aplana el array de arrays
+  when: 
+    - cri_temp_files_find_results is defined
+
+-
+  name: "Clean Resin Instance - Show prepared temp files list"
+  debug: 
+    msg: "{{ cri_temp_files_find_results_prepared  }}" 
+  when:
+    - cri_temp_files_show_enabled is undefined or (cri_temp_files_show_enabled is defined and cri_temp_files_show_enabled == true) # enabled by default
+    - cri_temp_files_find_results_prepared is defined
+
+- 
+  name: "Clean Resin Instance - Remove temp files"
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items: "{{ cri_temp_files_find_results_prepared }}"
+  when:
+    - cri_temp_files_remove_enabled is undefined or (cri_temp_files_remove_enabled is defined and cri_temp_files_remove_enabled == true) # enabled by default
+    - cri_temp_files_find_results_prepared is defined
