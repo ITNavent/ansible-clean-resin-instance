@@ -9,6 +9,36 @@
       - "cri_temp_files_remove_enabled={{cri_temp_files_remove_enabled|default('<UNDEFINED>')}}"
       - "cri_temp_files_targets={{cri_temp_files_targets|default('<UNDEFINED>')}}"
 
+-
+  name: "Clean Resin Instance - Get source"
+  shell: "df -h . --output=source | tail -n 1 | xargs"
+  register: status_source
+
+-
+  name: "Clean Resin Instance - Get target"
+  shell: "df -h . --output=target | tail -n 1 | xargs"
+  register: status_target
+
+-
+  name: "Clean Resin Instance - Get filesystem total size"
+  shell: "df -h . --output=size | tail -n 1 | xargs"
+  register: status_size
+
+-
+  name: "Clean Resin Instance - Get initial used space percent"
+  shell: "df -h . --output=pcent | tail -n 1 | xargs"
+  register: initial_status_pcent
+
+-
+  name: "Clean Resin Instance - Get initial available space"
+  shell: "df -h . --output=avail | tail -n 1 | xargs"
+  register: initial_status_avail
+
+-
+  name: "Clean Resin Instance - Show initial status"
+  debug:
+    msg:
+      - "{{status_source.stdout}} ({{status_target.stdout}})  | Total: {{status_size.stdout}}  | Initial used space percent:  {{initial_status_pcent.stdout}}  | Initial available space:  {{initial_status_avail.stdout}}"
 
 
 #clean-resin-log-files
@@ -123,3 +153,21 @@
   when:
     - cri_temp_files_remove_enabled is undefined or (cri_temp_files_remove_enabled is defined and cri_temp_files_remove_enabled == true) # enabled by default
     - cri_temp_files_find_results_prepared is defined
+
+-
+  name: "Clean Resin Instance - Final status - Get used space percent"
+  shell: "df -h . --output=pcent | tail -n 1 | xargs"
+  register: final_status_pcent
+
+-
+  name: "Clean Resin Instance - Final status - Get available space"
+  shell: "df -h . --output=avail | tail -n 1 | xargs"
+  register: final_status_avail
+
+-
+  name: "Clean Resin Instance - Show status"
+  debug:
+    msg:
+      - "{{status_source.stdout}} ({{status_target.stdout}})  | Total: {{status_size.stdout}}  | Initial used space percent:  {{initial_status_pcent.stdout}}  | Initial available space:  {{initial_status_avail.stdout}}"
+      - "{{status_source.stdout}} ({{status_target.stdout}})  | Total: {{status_size.stdout}}  | Final used space percent:  {{final_status_pcent.stdout}}  | Final available space:  {{final_status_avail.stdout}}"
+

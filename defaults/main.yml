@@ -26,13 +26,13 @@ cri_log_files_targets:
 cri_temp_files_remove_enabled: yes
 
 cri_temp_dump_files_paths: "/var/resin"
-cri_temp_dump_files_patterns: "*"
+cri_temp_dump_files_patterns: "*.hprof"
 cri_temp_dump_files_recurse: no
 cri_temp_dump_files_hidden: yes
 cri_temp_dump_files_file_type: "file"
 
 cri_temp_git_files_paths: "/var/resin/resin-data/default/.git"
-cri_temp_git_files_patterns: "*.hprof"
+cri_temp_git_files_patterns: "*"
 cri_temp_git_files_recurse: yes
 cri_temp_git_files_hidden: yes
 cri_temp_git_files_file_type: "any" # any = delete files, directories and symbolic links
@@ -51,4 +51,5 @@ cri_temp_files_targets:
     cri_temp_files_hidden: "{{cri_temp_git_files_hidden}}"
     cri_temp_files_file_type: "{{cri_temp_git_files_file_type}}"
     
+
 
