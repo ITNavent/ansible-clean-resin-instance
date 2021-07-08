@@ -41,6 +41,13 @@
       - "{{status_source.stdout}} ({{status_target.stdout}})  | Total: {{status_size.stdout}}  | Initial used space percent:  {{initial_status_pcent.stdout}}  | Initial available space:  {{initial_status_avail.stdout}}"
 
 
+#clean-linux-instance
+- 
+  include_role: 
+    name: clean-linux-instance
+  ignore_errors: true # ignora errores de la tarea
+  
+
 #clean-resin-log-files
 
 - 
